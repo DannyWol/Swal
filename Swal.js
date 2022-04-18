@@ -1,74 +1,99 @@
+/** Swal Version 0.2
+ *  TODO 1. TITLE, TEXT Custom할 수 있도록
+ *  	 2. callback 들어가는지 확인
+ *  	 3. Confirm 후 Loading 후 Success or Fail
+ *  	 4.
+ * */
 class Swal {
+	method = null;
+	success = null;
+	error = null;
 
-	constructor(method, successCallback, errorCallback) {
-		if(method !== undefined && typeof method === 'string') this.method = method;
-		if(successCallback !== undefined && typeof successCallback === 'function') this.success = successCallback;
-		if(errorCallback !== undefined && typeof errorCallback === 'function') this.error = errorCallback;
+	/** @Param : Object(method : String, confirmCallback: function */
+	constructor(config) {
+		if(typeof config !== 'object') throw new Error('wrong parameter');
+		if(typeof config.method !== 'string') throw new Error('wrong parameter');
+		if(typeof config.success === 'function') this.success = config.success;
+		if(typeof config.error === 'function') this.error = config.error;
 
-		this.load();
+		this.load(config);
 	}
 
 	/** Swal 라이브러리 Load */
-	load() {
-		const script = document.createElement('script');
+	load(config) {
+		const swalLibrary = document.getElementById('sweetalert2');
 
-		script.type = 'text/javascript';
-		script.src = '../resources/sweetalert2.all.min.js';
+		if (swalLibrary === null) {
+			const script = document.createElement('script');
 
-		document.querySelector('body').appendChild(script);
-		script.onload = () => {
-			this.control(this.method);
-		};
+			script.type = 'text/javascript';
+			script.src = '../resources/sweetalert2.all.min.js';
+			script.id = 'sweetalert2'
+			document.querySelector('body').appendChild(script);
+
+			script.onload = () => {
+				this.control(config);
+			};
+		}
+		else {
+			this.control(config);
+		}
 	}
 
-	/** Method 별 SWAL 지정 */
-	control(method) {
+	/** Method 별 SWAL 지정
+	 *  @Param : String */
+	control(config) {
+		const method = config.method.toLowerCase();
 		switch (method) {
 			case 'success':
 				this.create({
-					icon: 'success',
-					text: '성공했습니다.',
+					icon: method,
+					title: config.title,
+					text: config.text,
 					confirmButtonText: `확인`
-				})
+				});
 				break;
 			case 'error':
 				this.create({
-					icon: 'error',
-					title: 'title',
-					text: 'text',
+					icon: method,
+					title: config.title,
+					text: config.text,
 					confirmButtonText: '확인'
-				})
+				});
 				break;
 			case 'info':
 				this.create({
-					icon: 'info',
-					title: 'title',
-					text: 'text',
+					icon: method,
+					title: config.title,
+					text: config.text,
 					confirmButtonText: '확인'
-				})
+				});
 				break;
 			case 'warning':
 				this.create({
-					icon: 'warning',
-					title: 'title',
-					text: 'text',
+					icon: method,
+					title: config.title,
+					text: config.text,
 					confirmButtonText: '확인'
-				})
+				});
 				break;
 			case 'loading':
 				this.create({
-					icon: 'loading',
-					title: 'title',
-					text: 'text',
-					confirmButtonText: '확인'
-				})
+					title: method,
+					text: config.title,
+					timer: 1000,
+					didOpen: () => {
+						SweetAlert.showLoading();
+					},
+				});
 				break;
 			default:
 				this.handler('error', 'wrong parameter \n method - control');
 		}
 	}
 
-	/** Swal 생성 */
+	/** Swal 생성
+	 *  @Param : Object */
 	create(config) {
 		SweetAlert.fire({
 			icon: config.icon,
@@ -102,17 +127,19 @@ class Swal {
 			position: config.position,
 			showClass: config.showClass,
 			hideClass: config.hideClass,
+			didOpen: config.didOpen
 		})
 	}
 
-	/** callback Handler */
+	/** callback Handler
+	 *  @Param : String, String*/
 	handler(method, msg) {
 		switch (method) {
 			case 'success':
-				if(typeof this.config.success === 'function') this.success(msg);
+				if(typeof this.success === 'function') this.success(msg);
 				break;
 			case 'error':
-				if(typeof this.config.error === 'function') this.error(msg);
+				if(typeof this.error === 'function') this.error(msg);
 				else throw new Error(msg);
 				break;
 		}
